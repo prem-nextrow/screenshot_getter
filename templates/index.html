@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Web Crawl Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold mb-6">Website Crawl System</h1>
+
+        <div class="bg-white p-6 rounded-lg shadow-md mb-8">
+            <div class="flex gap-4">
+                <input type="text" id="targetUrl" placeholder="https://example.com" class="flex-1 border p-2 rounded">
+                <button onclick="startCrawl()" id="crawlBtn" class="bg-blue-600 text-white px-6 py-2 rounded">Analyze</button>
+            </div>
+            <div id="loading" class="hidden mt-4 text-blue-600 animate-pulse">Processing assets...</div>
+        </div>
+
+        <div id="results" class="hidden space-y-8">
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-xl font-bold mb-4">Screenshot Reports (PDF)</h2>
+                <div id="pdfContainer" class="space-y-2 divide-y"></div>
+            </div>
+
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-xl font-bold mb-4">Media Assets (.mp4)</h2>
+                <div id="mediaGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function startCrawl() {
+            const url = document.getElementById('targetUrl').value;
+            if (!url) return;
+
+            document.getElementById('loading').classList.remove('hidden');
+            
+            const response = await fetch('/crawl', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ url })
+            });
+            const data = await response.json();
+
+            if (data.status === 'done') {
+                const pdfContainer = document.getElementById('pdfContainer');
+                pdfContainer.innerHTML = data.pdf_list.map(pdf => `
+                    <div class="flex justify-between py-2">
+                        <span>${pdf.name}</span>
+                        <a href="${pdf.url}" download class="text-blue-600 font-bold hover:underline">Download PDF</a>
+                    </div>
+                `).join('');
+
+                const mediaGrid = document.getElementById('mediaGrid');
+                mediaGrid.innerHTML = data.media_files.map(item => `
+                    <div class="bg-black rounded overflow-hidden">
+                        <video controls class="w-full"><source src="${item.url}" type="video/mp4"></video>
+                    </div>
+                `).join('');
+
+                document.getElementById('results').classList.remove('hidden');
+            }
+            document.getElementById('loading').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
