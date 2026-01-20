@@ -1,0 +1,9 @@
+flask
+requests
+moviepy
+numpy
+pillow
+fpdf
+playwright
+fastapi
+uvicorn
